@@ -1,5 +1,5 @@
 SPACE INVADERS style game using pygame
 
-![Alt text](/screenshots/mainmenu.png?raw=true "Main Menu")
+![image](/screenshots/mainmenu.png)
 
-![Alt text](/screenshots/ingame.png?raw=true "In-Game")
+![image](/screenshots/ingame.png)
