@@ -1,5 +1,5 @@
 SPACE INVADERS style game using pygame
 
-![image](/mainmenu.png)
+![image](/mainmenu.PNG)
 
-![image](/ingame.png)
+![image](/ingame.PNG)
