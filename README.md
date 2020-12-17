@@ -1,4 +1,6 @@
-SPACE INVADERS style game using pygame, with OST by cac0d3m0n
+SPACE INVADERS style game using pygame
+
+creado por @charr0max en colaboracion con @cacod3m0n y @mrCharrington
 
 https://soundcloud.com/manuel-gonzalez-59/saul-and-dale
 
