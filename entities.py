@@ -9,6 +9,10 @@ UFO_HEALTH = 100
 UFO_STRONGER_HEALTH = 150
 BOSS_HEALTH = 300
 
+UFO_POINTS = 10
+UFO_STRONGER_POINTS = 30
+UFO_BOSS_POINTS = 50
+
 PLAYER_BULLET = pygame.image.load(os.path.join("assets", "missile.png"))
 ENEMY_BULLET = pygame.image.load(os.path.join("assets", "bomb.png"))
 
@@ -23,7 +27,7 @@ def collide(object, other_object):
 class Ship:
     COOLDOWN = 30
     COOLDOWN_SPEED = 0.2
-    ENEMY_DMG = 10
+    ENEMY_COLLISION_DMG = 10
 
     def __init__(self,x, y, health = 100):
         self.x = x
@@ -91,16 +95,17 @@ class Ship:
                 self.lasers.remove(laser)
 
             elif laser.collision(object):
-                object.health -= self.ENEMY_DMG
+                object.health -= self.ENEMY_COLLISION_DMG
                 self.lasers.remove(laser)
             
 
     
 class Player(Ship):
     PLAYER_DMG = 100
-    def __init__(self, x, y, image, health=100):
+    def __init__(self, x, y, image, score= 0, health=100):
         super().__init__(x, y, health)
         self.image = image
+        self.score = score
         self.rocket = PLAYER_BULLET
         self.mask = pygame.mask.from_surface(self.image)
         self.max_health = health
@@ -116,9 +121,11 @@ class Player(Ship):
         for laser in self.lasers:
             laser.move(speed)
 
+            #if laser goes offscreen remove it
             if laser.off_screen(height):
                 self.lasers.remove(laser)
 
+            #if not check if collided with enemies
             else:
                 for object in objects:
                     if laser.collision(object):
@@ -126,7 +133,10 @@ class Player(Ship):
                         if laser in self.lasers:
                             self.lasers.remove(laser)
                         if object.health <= 0 and object in objects:
+                            object.sound.play()
                             objects.remove(object)
+                            self.score += object.points
+
 
     def healthbar(self, window):
         pygame.draw.rect(window, COLOR_RED, (self.x, self.y + self.get_height() + 10, self.get_width(), 5))
@@ -137,14 +147,15 @@ class Player(Ship):
 
 class Enemy(Ship):
     TYPE_MAP = {
-        "soldier" : (ENEMY_UFO, ENEMY_BULLET, UFO_HEALTH),
-        "captain" : (ENEMY_UFO_STRONG, ENEMY_BULLET, UFO_STRONGER_HEALTH),
-        "boss" : (ENEMY_UFO_BOSS, ENEMY_BULLET, BOSS_HEALTH)
+        "soldier" : (ENEMY_UFO, ENEMY_BULLET, UFO_HEALTH, UFO_POINTS),
+        "captain" : (ENEMY_UFO_STRONG, ENEMY_BULLET, UFO_STRONGER_HEALTH, UFO_STRONGER_POINTS),
+        "boss" : (ENEMY_UFO_BOSS, ENEMY_BULLET, BOSS_HEALTH, UFO_BOSS_POINTS)
     }
 
-    def __init__(self, x, y, type):
+    def __init__(self, x, y, type, sound):
         super().__init__(x, y)
-        self.image, self.rocket, self.health = self.TYPE_MAP[type]
+        self.image, self.rocket, self.health, self.points = self.TYPE_MAP[type]
+        self.sound = sound
         self.mask = pygame.mask.from_surface(self.image)
 
     def check_off_screen(self, height):

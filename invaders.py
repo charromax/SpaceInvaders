@@ -1,10 +1,12 @@
 import pygame
+from pygame import mixer
 import os
 import time
 import random
 from entities import Player, Enemy, collide
 
 pygame.font.init()
+mixer.init()
 
 COLOR_WHITE = (255,255,255)
 COLOR_RED = (255,0,0)
@@ -33,6 +35,14 @@ ENEMY_UFO_STRONG = pygame.image.load(os.path.join("assets", "ufo_stronger.png"))
 ENEMY_UFO_BOSS = pygame.image.load(os.path.join("assets", "ufo_boss.png"))
 PLAYER_SPACESHIP = pygame.image.load(os.path.join("assets", "player.png"))
 
+#LOAD SOUNDS
+MUSIC = mixer.music.load(os.path.join("assets", "music.mp3"))
+LASER_SOUND = mixer.Sound(os.path.join("assets", "laser.wav"))
+LASER_SOUND.set_volume(0.1)
+EXPLOSION_SOUND = mixer.Sound(os.path.join("assets", "explosion.wav"))
+EXPLOSION_SOUND.set_volume(0.2)
+mixer.music.play(-1)
+
 def main():
     run = True
     pause = False
@@ -58,10 +68,13 @@ def main():
         
         lives_label = main_font.render(f"Lives: {lives}", True , COLOR_WHITE)
         level_label = main_font.render(f"Level: {level}", True, COLOR_WHITE)
+        score_label = main_font.render(f"Score: {player.score}", True, COLOR_WHITE)
 
         WINDOW.blit(lives_label, (10, 10))
         level_label_x = GAME_WIDTH - level_label.get_width() - 10
         WINDOW.blit(level_label, (level_label_x, 10))
+        score_label_x = GAME_WIDTH/2 - score_label.get_width()/2
+        WINDOW.blit(score_label, (score_label_x, 10))
 
         #DRAW ENEMIES
         for enemy in enemies:
@@ -94,6 +107,7 @@ def main():
 
         #take life if health is depleted
         if player.health <= 0 and lives > 0:
+            EXPLOSION_SOUND.play()
             lives -= 1
             player.health = 100
 
@@ -113,7 +127,8 @@ def main():
                 enemy = Enemy(
                     random.randrange(50, GAME_WIDTH-64), #enemy sprite is 64x64 px
                     random.randrange(-1500, -100), 
-                    random.choice([SOLDIER,CAPTAIN,BOSS]))
+                    random.choice([SOLDIER,CAPTAIN,BOSS]),
+                    EXPLOSION_SOUND)
                 enemies.append(enemy)
 
         #CHECK QUIT        
@@ -146,7 +161,8 @@ def main():
             if not player.boundary_up():
                 player.move_up(PLAYER_SPEED)        
 
-        if keys[pygame.K_SPACE]:  
+        if keys[pygame.K_SPACE]:
+            LASER_SOUND.play()
             player.shoot()
         
         if keys[pygame.K_ESCAPE]:
@@ -162,12 +178,14 @@ def main():
             enemy.move_lasers(BULLET_SPEED, GAME_HEIGHT, player)
 
             #enemy shooting chance
-            if random.randrange(0, 2*60) == 1:              #enemy shooting probability
+            if random.randrange(0, 2*60) == 1:    #enemy shooting probability
+                LASER_SOUND.play() 
                 enemy.shoot()
 
             #check collision between enemy and player
             if collide(enemy, player):
                 player.health -= 50
+                EXPLOSION_SOUND.play()
                 enemies.remove(enemy)
                 #when enemy leaves the screen remove and take a life
             elif enemy.check_off_screen(GAME_HEIGHT):
